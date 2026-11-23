@@ -1,0 +1,1501 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام إدارة المصنع وبوابة الأبراج المتكامل</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: #0b0f19;
+            color: #f3f4f6;
+        }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #111827; }
+        ::-webkit-scrollbar-thumb { background: #374151; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #4b5563; }
+        @media print {
+            body { background-color: #ffffff !important; color: #111827 !important; }
+            header, footer, button, select, input { display: none !important; }
+        }
+    </style>
+</head>
+<body class="bg-[#0b0f19] text-gray-100 min-h-screen flex flex-col">
+
+    <header class="bg-slate-900/95 border-b border-slate-800 sticky top-0 z-40 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-wrap items-center justify-between h-auto py-3 gap-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 text-xl font-black">
+                        <i class="fa-solid fa-industry"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-lg font-black text-white tracking-tight flex items-center flex-wrap gap-2">
+                            <span>نظام المصنع المتكامل</span>
+                            <button type="button" onclick="handleSyncBadgeClick()" id="cloudSyncBadge" title="حالة المزامنة السحابية" class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30 flex items-center gap-1.5 hover:brightness-110 transition-all cursor-pointer">
+                                <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                                جاري الاتصال بالسحابة...
+                            </button>
+                        </h1>
+                        <p class="text-xs text-slate-400">إدارة طلبات الأبراج، خطوط التصنيع، المخزون، والمشتريات</p>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2">
+                    <div id="roleSwitcherGroup" class="flex items-center bg-slate-950 border border-slate-800 rounded-xl p-1">
+                        <button type="button" onclick="switchRole('admin')" id="btnRoleAdmin" class="px-3 py-1.5 rounded-lg text-xs font-black transition-all bg-amber-500 text-slate-950">
+                            الإدارة (محمد)
+                        </button>
+                        <button type="button" onclick="switchRole('tower')" id="btnRoleTower" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white">
+                            بوابة المسؤولين
+                        </button>
+                    </div>
+
+                    <button type="button" onclick="openNewOrderModal('mohammad', 'محمد')" id="btnAdminNewOrder" class="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-black transition-all flex items-center gap-1.5 shadow-lg shadow-amber-500/20">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>طلب جديد (محمد)</span>
+                    </button>
+
+                    <button type="button" onclick="openShareLinksModal()" id="btnShareLinks" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 text-xs font-bold transition-all flex items-center gap-1.5">
+                        <i class="fa-solid fa-link"></i>
+                        <span class="hidden md:inline">روابط المسؤولين</span>
+                    </button>
+
+                    <button type="button" onclick="openCloudSettingsModal()" id="btnCloudSettings" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-sky-400 border border-slate-700 text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm">
+                        <i class="fa-solid fa-cloud-arrow-up text-sm"></i>
+                        <span class="hidden md:inline">ربط السحابة</span>
+                    </button>
+
+                    <button type="button" onclick="refreshFromCloudNow()" title="تحديث البيانات من السحابة" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-slate-700 text-xs font-bold transition-all flex items-center gap-1.5">
+                        <i class="fa-solid fa-rotate"></i>
+                        <span class="hidden sm:inline">تحديث</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+        <section id="towerPortalSection" class="space-y-6 hidden">
+            <div class="bg-gradient-to-l from-slate-900 via-slate-900 to-amber-950/30 border border-slate-800 rounded-2xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div class="space-y-1">
+                    <div class="flex items-center gap-2">
+                        <span id="towerManagerBadge" class="px-2.5 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-bold">
+                            مسؤول معتمد: Amrit
+                        </span>
+                        <span class="text-xs text-slate-400">• بوابة تقديم ومتابعة طلبات الأبراج</span>
+                    </div>
+                    <h2 class="text-xl font-black text-white">مرحباً بك في بوابة طلبات الأبراج والمشاريع</h2>
+                    <p class="text-xs text-slate-400">يمكنك تقديم طلبات جديدة، إضافة عدة مقاسات لنفس البند، تعديل الطلبات، ومتابعة حالة التنفيذ والتوصيل.</p>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-3">
+                    <div id="managerSelectorContainer" class="flex items-center gap-2 bg-slate-950/80 border border-slate-700/80 rounded-xl px-3 py-2">
+                        <label for="selectTowerManager" class="text-xs text-slate-400 font-bold">المسؤول:</label>
+                        <select id="selectTowerManager" onchange="changeTowerManager(this.value)" class="bg-transparent text-white text-xs font-bold focus:outline-none cursor-pointer">
+                            <option value="amrit" class="bg-slate-900">Amrit</option>
+                            <option value="mawed" class="bg-slate-900">Mawed</option>
+                            <option value="jalmar" class="bg-slate-900">Jalmar</option>
+                            <option value="dubai" class="bg-slate-900">Dubai</option>
+                        </select>
+                    </div>
+
+                    <button type="button" onclick="openNewOrderModal()" class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-black transition-all flex items-center gap-2 shadow-lg shadow-amber-500/20">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>تقديم طلب جديد</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <button type="button" onclick="setTowerStatusFilter('ALL')" class="text-right bg-slate-900/90 hover:bg-slate-800/80 border border-slate-800 hover:border-amber-500/40 rounded-2xl p-4 transition-all">
+                    <div class="flex items-center justify-between text-slate-400 text-xs font-bold mb-1">
+                        <span>إجمالي طلباتي</span>
+                        <i class="fa-solid fa-layer-group text-amber-400"></i>
+                    </div>
+                    <div id="towerStatTotal" class="text-2xl font-black text-white">0</div>
+                </button>
+                <button type="button" onclick="setTowerStatusFilter('NEW')" class="text-right bg-slate-900/90 hover:bg-slate-800/80 border border-slate-800 hover:border-sky-400/50 rounded-2xl p-4 transition-all">
+                    <div class="flex items-center justify-between text-slate-400 text-xs font-bold mb-1">
+                        <span>طلبات جديدة</span>
+                        <i class="fa-solid fa-clock text-sky-400"></i>
+                    </div>
+                    <div id="towerStatNew" class="text-2xl font-black text-sky-400">0</div>
+                </button>
+                <button type="button" onclick="setTowerStatusFilter('WITH_DRIVER')" class="text-right bg-slate-900/90 hover:bg-slate-800/80 border border-slate-800 hover:border-amber-400/50 rounded-2xl p-4 transition-all">
+                    <div class="flex items-center justify-between text-slate-400 text-xs font-bold mb-1">
+                        <span>مع السائق</span>
+                        <i class="fa-solid fa-truck text-amber-400"></i>
+                    </div>
+                    <div id="towerStatDriver" class="text-2xl font-black text-amber-400">0</div>
+                </button>
+                <button type="button" onclick="setTowerStatusFilter('DELIVERED')" class="text-right bg-slate-900/90 hover:bg-slate-800/80 border border-slate-800 hover:border-emerald-400/50 rounded-2xl p-4 transition-all">
+                    <div class="flex items-center justify-between text-slate-400 text-xs font-bold mb-1">
+                        <span>سلمت للموقع</span>
+                        <i class="fa-solid fa-circle-check text-emerald-400"></i>
+                    </div>
+                    <div id="towerStatDelivered" class="text-2xl font-black text-emerald-400">0</div>
+                </button>
+            </div>
+
+            <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row gap-3 items-center justify-between">
+                <div class="relative w-full sm:w-80">
+                    <i class="fa-solid fa-search absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+                    <input type="text" id="towerSearchInput" oninput="renderTowerOrders()" placeholder="بحث برقم الطلب، البرج، الشقة، أو البند..." class="w-full bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-xl pr-9 pl-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none">
+                </div>
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <select id="towerStatusFilter" onchange="renderTowerOrders()" class="w-full sm:w-auto bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
+                        <option value="ALL">جميع الحالات</option>
+                        <option value="NEW">جديد</option>
+                        <option value="IN_PRODUCTION">قيد التصنيع</option>
+                        <option value="READY">جاهز للتسليم</option>
+                        <option value="WITH_DRIVER">مع السائق</option>
+                        <option value="DELIVERED">تم التسليم</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="towerOrdersContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        </section>
+
+        <section id="adminDashboardSection" class="space-y-6">
+            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-2 flex flex-wrap items-center gap-1.5 overflow-x-auto">
+                <button type="button" onclick="switchAdminTab('dashboard')" id="adminNav-dashboard" class="admin-nav-btn px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>نظرة عامة والطلبات</span>
+                </button>
+                <button type="button" onclick="switchAdminTab('production')" id="adminNav-production" class="admin-nav-btn px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-gears"></i>
+                    <span>خطوط التصنيع والورشة</span>
+                </button>
+                <button type="button" onclick="switchAdminTab('inventory')" id="adminNav-inventory" class="admin-nav-btn px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-boxes-stacked"></i>
+                    <span>المخزون والمواد</span>
+                </button>
+                <button type="button" onclick="switchAdminTab('purchases')" id="adminNav-purchases" class="admin-nav-btn px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-cart-shopping"></i>
+                    <span>سجل المشتريات والتوريد</span>
+                </button>
+                <button type="button" onclick="switchAdminTab('reports')" id="adminNav-reports" class="admin-nav-btn px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-file-invoice"></i>
+                    <span>تقارير كشوفات الأبراج</span>
+                </button>
+            </div>
+
+            <div id="adminTab-dashboard" class="space-y-6">
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    <button type="button" onclick="filterAdminByStatusCard('ALL')" class="text-right bg-slate-900 hover:bg-slate-800/80 border border-slate-800 hover:border-amber-500/40 p-4 rounded-2xl transition-all">
+                        <span class="text-xs text-slate-400 font-bold block">إجمالي الطلبات الواردة</span>
+                        <span id="kpiTotalOrders" class="text-3xl font-black text-white mt-1 block">0</span>
+                    </button>
+                    <button type="button" onclick="filterAdminByStatusCard('NEW')" class="text-right bg-slate-900 hover:bg-slate-800/80 border border-slate-800 hover:border-amber-400/50 p-4 rounded-2xl transition-all">
+                        <span class="text-xs text-amber-400 font-bold block">طلبات جديدة</span>
+                        <span id="kpiNewOrders" class="text-3xl font-black text-amber-400 mt-1 block">0</span>
+                    </button>
+                    <button type="button" onclick="filterAdminByStatusCard('WITH_DRIVER')" class="text-right bg-slate-900 hover:bg-slate-800/80 border border-slate-800 hover:border-sky-400/50 p-4 rounded-2xl transition-all">
+                        <span class="text-xs text-sky-400 font-bold block">طلبات مع السائق</span>
+                        <span id="kpiDriverOrders" class="text-3xl font-black text-sky-400 mt-1 block">0</span>
+                    </button>
+                    <button type="button" onclick="filterAdminByStatusCard('DELIVERED')" class="text-right bg-slate-900 hover:bg-slate-800/80 border border-slate-800 hover:border-emerald-400/50 p-4 rounded-2xl transition-all">
+                        <span class="text-xs text-emerald-400 font-bold block">طلبات سلمت للموقع</span>
+                        <span id="kpiDeliveredOrders" class="text-3xl font-black text-emerald-400 mt-1 block">0</span>
+                    </button>
+                </div>
+
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+                    <div class="p-4 border-b border-slate-800 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                        <div>
+                            <h3 class="text-base font-black text-white flex items-center gap-2">
+                                <i class="fa-solid fa-clipboard-list text-amber-400"></i>
+                                سجل طلبات الأبراج والمشاريع
+                            </h3>
+                            <p class="text-xs text-slate-400">متابعة حالة الطلبات، تعديلها، إسنادها للسائقين، أو تصديرها إكسل</p>
+                        </div>
+
+                        <div class="flex flex-wrap items-center gap-2">
+                            <div class="relative">
+                                <i class="fa-solid fa-search absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+                                <input type="text" id="adminSearchInput" oninput="renderAdminOrdersTable()" placeholder="بحث برقم الطلب، البرج، الشقة، أو المسؤول..." class="bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-xl pr-8 pl-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none w-64">
+                            </div>
+
+                            <select id="adminTowerFilter" onchange="renderAdminOrdersTable()" class="bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
+                                <option value="ALL">جميع الأبراج</option>
+                            </select>
+
+                            <select id="adminStatusFilter" onchange="renderAdminOrdersTable()" class="bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
+                                <option value="ALL">جميع الحالات</option>
+                                <option value="NEW">جديد</option>
+                                <option value="IN_PRODUCTION">قيد التصنيع</option>
+                                <option value="READY">جاهز للتسليم</option>
+                                <option value="WITH_DRIVER">مع السائق</option>
+                                <option value="DELIVERED">تم التسليم</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-right border-collapse">
+                            <thead>
+                                <tr class="bg-slate-950/70 border-b border-slate-800 text-[11px] font-bold text-slate-400">
+                                    <th class="py-3 px-4">رقم الطلب</th>
+                                    <th class="py-3 px-4">المسؤول / البرج</th>
+                                    <th class="py-3 px-4">الشقة / الوحدة</th>
+                                    <th class="py-3 px-4">البنود والمقاسات</th>
+                                    <th class="py-3 px-4">الحالة الحالية</th>
+                                    <th class="py-3 px-4">تاريخ الطلب</th>
+                                    <th class="py-3 px-4 text-center">إجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminOrdersTableBody" class="divide-y divide-slate-800/70 text-xs"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="adminTab-production" class="space-y-6 hidden">
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+                        <div>
+                            <h3 class="text-base font-black text-white flex items-center gap-2">
+                                <i class="fa-solid fa-industry text-amber-400"></i>
+                                خطوط التصنيع والورشة النشطة
+                            </h3>
+                            <p class="text-xs text-slate-400">تحديث مراحل الإنتاج ونسب الإنجاز لكل خط إنتاج</p>
+                        </div>
+                        <button type="button" onclick="openAddProductionLineModal()" class="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-black transition-all flex items-center gap-1.5 self-start sm:self-auto">
+                            <i class="fa-solid fa-plus"></i>
+                            <span>إضافة خط إنتاج</span>
+                        </button>
+                    </div>
+                    <div id="productionLinesGrid" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+                </div>
+            </div>
+
+            <div id="adminTab-inventory" class="space-y-6 hidden">
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+                        <div>
+                            <h3 class="text-base font-black text-white flex items-center gap-2">
+                                <i class="fa-solid fa-boxes-stacked text-amber-400"></i>
+                                إدارة المخزون والمواد الخام والإكسسوارات
+                            </h3>
+                            <p class="text-xs text-slate-400">متابعة الأرصدة الحالية وتنبيهات انخفاض المخزون</p>
+                        </div>
+                        <button type="button" onclick="openAddInventoryModal()" class="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-black transition-all flex items-center gap-1.5 self-start sm:self-auto">
+                            <i class="fa-solid fa-plus"></i>
+                            <span>إضافة مادة للمخزون</span>
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-right border-collapse">
+                            <thead>
+                                <tr class="bg-slate-950/70 border-b border-slate-800 text-[11px] font-bold text-slate-400">
+                                    <th class="py-3 px-4">اسم المادة</th>
+                                    <th class="py-3 px-4">التصنيف</th>
+                                    <th class="py-3 px-4">الرصيد الحالي</th>
+                                    <th class="py-3 px-4">الحد الأدنى</th>
+                                    <th class="py-3 px-4">الحالة</th>
+                                    <th class="py-3 px-4 text-center">تعديل الكمية</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inventoryTableBody" class="divide-y divide-slate-800/70 text-xs"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="adminTab-purchases" class="space-y-6 hidden">
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+                        <div>
+                            <h3 class="text-base font-black text-white flex items-center gap-2">
+                                <i class="fa-solid fa-cart-shopping text-amber-400"></i>
+                                سجل المشتريات وأوامر التوريد
+                            </h3>
+                            <p class="text-xs text-slate-400">تسجيل فواتير المشتريات واعتماد استلام المواد إلى المخزون</p>
+                        </div>
+                        <button type="button" onclick="openAddPurchaseModal()" class="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-black transition-all flex items-center gap-1.5 self-start sm:self-auto">
+                            <i class="fa-solid fa-plus"></i>
+                            <span>تسجيل فاتورة شراء</span>
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-right border-collapse">
+                            <thead>
+                                <tr class="bg-slate-950/70 border-b border-slate-800 text-[11px] font-bold text-slate-400">
+                                    <th class="py-3 px-4">رقم الفاتورة</th>
+                                    <th class="py-3 px-4">المورد</th>
+                                    <th class="py-3 px-4">المادة المشتراة</th>
+                                    <th class="py-3 px-4">الكمية</th>
+                                    <th class="py-3 px-4">التكلفة الإجمالية</th>
+                                    <th class="py-3 px-4">الحالة</th>
+                                    <th class="py-3 px-4 text-center">إجراء</th>
+                                </tr>
+                            </thead>
+                            <tbody id="purchasesTableBody" class="divide-y divide-slate-800/70 text-xs"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="adminTab-reports" class="space-y-6 hidden">
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-5">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div>
+                            <h3 class="text-base font-black text-white flex items-center gap-2">
+                                <i class="fa-solid fa-file-invoice text-amber-400"></i>
+                                كشوفات وتقارير الأبراج والمسؤولين
+                            </h3>
+                            <p class="text-xs text-slate-400">ملخص الطلبات والبنود حسب البرج أو المسؤول مع إمكانية الطباعة</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <select id="reportTowerSelect" onchange="renderTowerReport()" class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
+                                <option value="ALL">جميع الأبراج</option>
+                            </select>
+                            <button type="button" onclick="window.print()" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold border border-slate-700 flex items-center gap-1.5">
+                                <i class="fa-solid fa-print"></i>
+                                <span>طباعة الكشف</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="towerReportContent" class="space-y-4"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-slate-950 border-t border-slate-900 py-4 px-4 text-center text-xs text-slate-500 mt-auto">
+        نظام المصنع الذكي لإدارة الأبراج والمصنوعات الخشبية • مزامنة سحابية فورية
+    </footer>
+
+    <!-- NEW / EDIT ORDER MODAL -->
+    <div id="newOrderModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+            <div class="p-5 border-b border-slate-800 flex items-center justify-between sticky top-0 bg-slate-900 z-10">
+                <div>
+                    <h3 id="orderModalTitle" class="text-base font-black text-white flex items-center gap-2">
+                        <i class="fa-solid fa-file-circle-plus text-amber-400"></i>
+                        تقديم طلب جديد للمصنع
+                    </h3>
+                    <p class="text-xs text-slate-400 mt-0.5">
+                        مقدم الطلب: <span id="modalFormManagerName" class="text-amber-400 font-bold">محمد</span> • يمكنك إضافة عدة مقاسات داخل البند الواحد
+                    </p>
+                </div>
+                <button type="button" onclick="toggleModal('newOrderModal', false)" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form id="orderForm" onsubmit="submitOrderForm(event)" class="p-5 space-y-5">
+                <input type="hidden" id="editingOrderId" value="">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 mb-1.5">اسم البرج / المشروع <span class="text-rose-400">*</span></label>
+                        <input type="text" id="inpTowerName" required placeholder="اكتب اسم البرج هنا..." class="w-full bg-slate-950 border border-slate-700 focus:border-amber-500 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 mb-1.5">رقم الشقة / الطابق / الوحدة <span class="text-rose-400">*</span></label>
+                        <input type="text" id="inpApartmentUnit" required placeholder="مثال: شقة 1204 - الطابق 12" class="w-full bg-slate-950 border border-slate-700 focus:border-amber-500 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <label class="text-xs font-black text-amber-400 flex items-center gap-1.5">
+                            <i class="fa-solid fa-cubes"></i>
+                            بنود الطلب والمقاسات
+                        </label>
+                        <button type="button" onclick="addItemRow()" class="px-3 py-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 text-xs font-bold flex items-center gap-1.5 transition-all">
+                            <i class="fa-solid fa-plus"></i>
+                            <span>إضافة بند جديد</span>
+                        </button>
+                    </div>
+                    <div id="itemsContainer" class="space-y-3"></div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1.5">ملاحظات إضافية أو تعليمات التوصيل</label>
+                    <textarea id="inpDetails" rows="2" placeholder="أي تفاصيل إضافية..." class="w-full bg-slate-950 border border-slate-700 focus:border-amber-500 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none"></textarea>
+                </div>
+
+                <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
+                    <button type="button" onclick="toggleModal('newOrderModal', false)" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold">إلغاء</button>
+                    <button type="submit" id="btnSubmitOrder" class="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-black shadow-lg shadow-amber-500/20">إرسال الطلب إلى المصنع</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ORDER DETAILS MODAL WITH EXCEL EXPORT -->
+    <div id="orderDetailsModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full max-h-[88vh] overflow-y-auto shadow-2xl">
+            <div class="p-5 border-b border-slate-800 flex items-center justify-between gap-2 sticky top-0 bg-slate-900 z-10">
+                <h3 id="detailsModalTitle" class="text-base font-black text-white">تفاصيل الطلب</h3>
+                <div class="flex items-center gap-2">
+                    <button type="button" id="btnExportOrderExcel" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black flex items-center gap-1.5 transition-all">
+                        <i class="fa-solid fa-file-excel"></i>
+                        <span>تصدير إكسل</span>
+                    </button>
+                    <button type="button" onclick="toggleModal('orderDetailsModal', false)" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+            <div id="orderDetailsBody" class="p-5 space-y-4 text-xs"></div>
+        </div>
+    </div>
+
+    <!-- SHARE LINKS MODAL (ADMIN ONLY) -->
+    <div id="shareLinksModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-xl w-full max-h-[88vh] overflow-y-auto shadow-2xl">
+            <div class="p-5 border-b border-slate-800 flex items-center justify-between sticky top-0 bg-slate-900 z-10">
+                <div>
+                    <h3 class="text-base font-black text-white flex items-center gap-2">
+                        <i class="fa-solid fa-link text-amber-400"></i>
+                        روابط بوابات المسؤولين والأبراج
+                    </h3>
+                    <p class="text-xs text-slate-400 mt-0.5">انسخ الرابط الخاص بكل مسؤول وأرسله له مباشرة</p>
+                </div>
+                <button type="button" onclick="toggleModal('shareLinksModal', false)" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div id="shareLinksContainer" class="p-5 space-y-3"></div>
+        </div>
+    </div>
+
+    <!-- OTHER MODALS -->
+    <div id="addProductionLineModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-5 space-y-4">
+            <div class="flex items-center justify-between">
+                <h3 class="text-sm font-black text-white">إضافة خط إنتاج جديد</h3>
+                <button type="button" onclick="toggleModal('addProductionLineModal', false)" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form onsubmit="submitProductionLine(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="block text-slate-300 font-bold mb-1">اسم خط الإنتاج</label>
+                    <input type="text" id="inpLineName" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white">
+                </div>
+                <div>
+                    <label class="block text-slate-300 font-bold mb-1">المشرف المسؤول</label>
+                    <input type="text" id="inpLineSupervisor" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white">
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="toggleModal('addProductionLineModal', false)" class="px-3.5 py-2 rounded-xl bg-slate-800 text-slate-300 font-bold">إلغاء</button>
+                    <button type="submit" class="px-4 py-2 rounded-xl bg-amber-500 text-slate-950 font-black">حفظ الخط</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="addInventoryModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-5 space-y-4">
+            <div class="flex items-center justify-between">
+                <h3 class="text-sm font-black text-white">إضافة مادة إلى المخزون</h3>
+                <button type="button" onclick="toggleModal('addInventoryModal', false)" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form onsubmit="submitInventoryItem(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="block text-slate-300 font-bold mb-1">اسم المادة</label>
+                    <input type="text" id="inpInvName" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white">
+                </div>
+                <div>
+                    <label class="block text-slate-300 font-bold mb-1">التصنيف</label>
+                    <input type="text" id="inpInvCategory" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-slate-300 font-bold mb-1">الكمية الابتدائية</label>
+                        <input type="number" id="inpInvQty" required min="0" value="50" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white">
+                    </div>
+                    <div>
+                        <label class="block text-slate-300 font-bold mb-1">الحد الأدنى</label>
+                        <input type="number" id="inpInvMin" required min="0" value="10" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white">
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="toggleModal('addInventoryModal', false)" class="px-3.5 py-2 rounded-xl bg-slate-800 text-slate-300 font-bold">إلغاء</button>
+                    <button type="submit" class="px-4 py-2 rounded-xl bg-amber-500 text-slate-950 font-black">إضافة للمخزون</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="addPurchaseModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-5 space-y-4">
+            <div class="flex items-center justify-between">
+                <h3 class="text-sm font-black text-white">تسجيل فاتورة شراء جديدة</h3>
+                <button type="button" onclick="toggleModal('addPurchaseModal', false)" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form onsubmit="submitPurchase(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="block text-slate-300 font-bold mb-1">اسم المورد</label>
+                    <input type="text" id="inpPurSupplier" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white">
+                </div>
+                <div>
+                    <label class="block text-slate-300 font-bold mb-1">المادة المشتراة</label>
+                    <input type="text" id="inpPurMaterial" required class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-slate-300 font-bold mb-1">الكمية</label>
+                        <input type="number" id="inpPurQty" required min="1" value="20" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white">
+                    </div>
+                    <div>
+                        <label class="block text-slate-300 font-bold mb-1">التكلفة الإجمالية</label>
+                        <input type="number" id="inpPurCost" required min="0" step="0.01" value="2500" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white">
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="toggleModal('addPurchaseModal', false)" class="px-3.5 py-2 rounded-xl bg-slate-800 text-slate-300 font-bold">إلغاء</button>
+                    <button type="submit" class="px-4 py-2 rounded-xl bg-amber-500 text-slate-950 font-black">حفظ الفاتورة</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="deleteOrderModal" class="fixed inset-0 z-[60] bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-5 space-y-4 shadow-2xl">
+            <div class="flex items-start gap-3">
+                <div class="w-10 h-10 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-400 flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-trash-can text-base"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm font-black text-white">تأكيد حذف الطلب</h3>
+                    <p id="deleteOrderDesc" class="text-xs text-slate-400 mt-1">هل أنت متأكد من حذف هذا الطلب نهائياً؟</p>
+                </div>
+            </div>
+            <div class="flex items-center justify-end gap-2 pt-2">
+                <button type="button" onclick="toggleModal('deleteOrderModal', false)" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold">إلغاء</button>
+                <button type="button" id="btnConfirmDeleteOrder" class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-black">حذف نهائي</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="cloudSettingsModal" class="fixed inset-0 z-[60] bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-5 space-y-4 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div>
+                    <h3 class="text-sm font-black text-white flex items-center gap-2">
+                        <i class="fa-solid fa-cloud text-sky-400"></i>
+                        إعدادات الربط السحابي ومزامنة المسؤولين
+                    </h3>
+                    <p id="cloudStatusDetail" class="text-[11px] text-slate-400 mt-0.5">فحص حالة الاتصال بقاعدة البيانات السحابية</p>
+                </div>
+                <button type="button" onclick="toggleModal('cloudSettingsModal', false)" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form onsubmit="saveCloudConfigForm(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="block text-slate-300 font-bold mb-1">API Key (مفتاح Firebase)</label>
+                    <input type="text" id="inpCloudApiKey" required class="w-full bg-slate-950 border border-slate-700 focus:border-sky-500 rounded-xl px-3 py-2 text-white font-mono text-[11px]">
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-slate-300 font-bold mb-1">Project ID</label>
+                        <input type="text" id="inpCloudProjectId" required class="w-full bg-slate-950 border border-slate-700 focus:border-sky-500 rounded-xl px-3 py-2 text-white font-mono text-[11px]">
+                    </div>
+                    <div>
+                        <label class="block text-slate-300 font-bold mb-1">App ID</label>
+                        <input type="text" id="inpCloudAppId" required class="w-full bg-slate-950 border border-slate-700 focus:border-sky-500 rounded-xl px-3 py-2 text-white font-mono text-[11px]">
+                    </div>
+                </div>
+                <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-800">
+                    <button type="button" onclick="forcePushCloudSync()" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-400 font-bold flex items-center gap-1.5">
+                        <i class="fa-solid fa-rotate"></i>
+                        <span>مزامنة فورية الآن</span>
+                    </button>
+                    <div class="flex items-center gap-2">
+                        <button type="button" onclick="toggleModal('cloudSettingsModal', false)" class="px-3.5 py-2 rounded-xl bg-slate-800 text-slate-300 font-bold">إغلاق</button>
+                        <button type="submit" class="px-4 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-black">حفظ والاتصال</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="toastContainer" class="fixed bottom-5 left-5 z-[70] space-y-2 pointer-events-none"></div>
+
+    <script>
+        const PUBLISHED_HOST_URL = 'https://mohammadaw87-sketch.github.io/workshop/';
+        const CLOUD_CONFIG_STORAGE_KEY = 'factory_firebase_config_v1';
+
+        const DEFAULT_FIREBASE_CONFIG = {
+            apiKey: "AIzaSyBQA3N8CJrQiugSfZTxIWSOlggdj-Eh6Ss",
+            authDomain: "workshop-51548.firebaseapp.com",
+            databaseURL: "https://workshop-51548-default-rtdb.firebaseio.com",
+            projectId: "workshop-51548",
+            storageBucket: "workshop-51548.firebasestorage.app",
+            messagingSenderId: "1088911896641",
+            appId: "1:1088911896641:web:2bdff9a7301f62644f16c0",
+            measurementId: "G-ZJ37314049"
+        };
+
+        const MANAGERS_MAP = {
+            'mohammad': { key: 'mohammad', name: 'محمد', badge: 'الحساب الرئيسي: محمد' },
+            'amrit': { key: 'amrit', name: 'Amrit', badge: 'مسؤول معتمد: Amrit' },
+            'mawed': { key: 'mawed', name: 'Mawed', badge: 'مسؤول معتمد: Mawed' },
+            'jalmar': { key: 'jalmar', name: 'Jalmar', badge: 'مسؤول معتمد: Jalmar' },
+            'dubai': { key: 'dubai', name: 'Dubai', badge: 'مسؤول معتمد: Dubai' }
+        };
+
+        const defaultState = {
+            orders: [
+                {
+                    id: 'ORD-2026-A101',
+                    managerKey: 'amrit',
+                    managerName: 'Amrit',
+                    tower: 'برج المارينا 1',
+                    unit: 'شقة 802',
+                    details: 'تشطيب خشب بلوط طبيعي',
+                    items: [{ name: 'خزن مطبخ', dimensions: [{ width: '120 سم', height: '90 سم', depth: '60 سم', qty: 2, notes: 'خزانة سفلية' }] }],
+                    status: 'NEW',
+                    createdAt: '2026-11-20 10:15'
+                },
+                {
+                    id: 'ORD-2026-B204',
+                    managerKey: 'dubai',
+                    managerName: 'Dubai',
+                    tower: 'أبراج الخليج',
+                    unit: 'شقة 1501',
+                    details: 'تسليم مباشر للموقع',
+                    items: [{ name: 'أبواب خشبية داخلية', dimensions: [{ width: '90 سم', height: '215 سم', depth: '4.5 سم', qty: 4, notes: 'غرف النوم' }] }],
+                    status: 'DELIVERED',
+                    createdAt: '2026-11-18 14:40'
+                }
+            ],
+            productionLines: [
+                { id: 'PL-1', name: 'خط المطابخ والخزائن', supervisor: 'م. سامر', progress: 65, activeOrder: 'ORD-2026-A101', status: 'نشط' },
+                { id: 'PL-2', name: 'خط الأبواب والديكورات', supervisor: 'أ. خالد', progress: 40, activeOrder: 'بانتظار أمر تشغيل', status: 'نشط' },
+                { id: 'PL-3', name: 'خط الطلاء والتشطيب', supervisor: 'م. رامي', progress: 85, activeOrder: 'ORD-2026-B204', status: 'مكتمل جزئياً' }
+            ],
+            inventory: [
+                { id: 'INV-1', name: 'ألواح MDF 18mm', category: 'أخشاب', qty: 140, minQty: 30, unit: 'لوح' },
+                { id: 'INV-2', name: 'مفصلات هيدروليك هاتش', category: 'إكسسوارات', qty: 18, minQty: 25, unit: 'قطعة' },
+                { id: 'INV-3', name: 'دهان بولي يوريثان شفاف', category: 'مواد تشطيب', qty: 65, minQty: 15, unit: 'جالون' }
+            ],
+            purchases: [
+                { id: 'PUR-901', supplier: 'مؤسسة البناء للأخشاب', material: 'ألواح MDF 18mm', qty: 100, cost: 12500, status: 'مستلم', date: '2026-11-15' },
+                { id: 'PUR-902', supplier: 'الشرق للإكسسوارات', material: 'مفصلات هيدروليك هاتش', qty: 50, cost: 1750, status: 'قيد التوريد', date: '2026-11-22' }
+            ]
+        };
+
+        const STATUS_LABELS = {
+            'NEW': { text: 'جديد', cls: 'bg-sky-500/15 text-sky-400 border-sky-500/30' },
+            'IN_PRODUCTION': { text: 'قيد التصنيع', cls: 'bg-amber-500/15 text-amber-400 border-amber-500/30' },
+            'READY': { text: 'جاهز للتسليم', cls: 'bg-purple-500/15 text-purple-400 border-purple-500/30' },
+            'WITH_DRIVER': { text: 'مع السائق', cls: 'bg-orange-500/15 text-orange-400 border-orange-500/30' },
+            'DELIVERED': { text: 'تم التسليم', cls: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' }
+        };
+
+        window.appState = {
+            role: 'admin',
+            adminTab: 'dashboard',
+            managerKey: 'amrit',
+            managerName: 'Amrit',
+            draftOrderManagerKey: 'mohammad',
+            draftOrderManagerName: 'محمد',
+            isLockedManager: false,
+            itemRowCounter: 0,
+            pendingDeleteOrderId: null,
+            cloudConnected: false,
+            cloudErrorMsg: '',
+            data: JSON.parse(JSON.stringify(defaultState))
+        };
+
+        function isRestrictedTowerView() {
+            return Boolean(window.appState.isLockedManager || window.appState.role === 'tower');
+        }
+
+        function getActiveFirebaseConfig() {
+            try {
+                const saved = localStorage.getItem(CLOUD_CONFIG_STORAGE_KEY);
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    return { ...DEFAULT_FIREBASE_CONFIG, ...parsed };
+                }
+            } catch (e) {}
+            return { ...DEFAULT_FIREBASE_CONFIG };
+        }
+
+        function nowString() {
+            const d = new Date();
+            const pad = n => String(n).padStart(2, '0');
+            return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        }
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+            const toast = document.createElement('div');
+            const colorCls = type === 'error'
+                ? 'bg-rose-950/95 border-rose-500/50 text-rose-200'
+                : 'bg-slate-900/95 border-emerald-500/40 text-emerald-200';
+            toast.className = `pointer-events-auto border ${colorCls} px-4 py-2.5 rounded-xl shadow-xl text-xs font-bold flex items-center gap-2 transition-all`;
+            toast.innerHTML = `<i class="fa-solid ${type === 'error' ? 'fa-circle-exclamation text-rose-400' : 'fa-circle-check text-emerald-400'}"></i><span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 250); }, 3200);
+        }
+
+        function toggleModal(id, show) {
+            if (show && isRestrictedTowerView() && (id === 'cloudSettingsModal' || id === 'shareLinksModal')) {
+                return;
+            }
+            const el = document.getElementById(id);
+            if (el) el.classList.toggle('hidden', !show);
+        }
+
+        function updateSyncBadge(text, mode = 'synced') {
+            const badge = document.getElementById('cloudSyncBadge');
+            if (!badge) return;
+            const dotCls = mode === 'error' ? 'bg-rose-400' : (mode === 'syncing' ? 'bg-amber-400 animate-ping' : 'bg-emerald-400');
+            const boxCls = mode === 'error'
+                ? 'bg-rose-500/15 text-rose-300 border-rose-500/30'
+                : (mode === 'syncing'
+                    ? 'bg-amber-500/15 text-amber-300 border-amber-500/30'
+                    : 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30');
+            const displayText = isRestrictedTowerView()
+                ? (mode === 'syncing' ? 'تحديث البيانات...' : 'مزامنة نشطة')
+                : text;
+            badge.className = `text-[11px] font-bold px-2.5 py-0.5 rounded-full border flex items-center gap-1.5 transition-all ${isRestrictedTowerView() ? 'cursor-default' : 'hover:brightness-110 cursor-pointer'} ${boxCls}`;
+            badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full ${dotCls}"></span>${displayText}`;
+        }
+
+        window.handleSyncBadgeClick = function () {
+            if (isRestrictedTowerView()) {
+                window.refreshFromCloudNow();
+                return;
+            }
+            window.openCloudSettingsModal();
+        };
+
+        window.openCloudSettingsModal = function () {
+            if (isRestrictedTowerView()) return;
+            const cfg = getActiveFirebaseConfig();
+            document.getElementById('inpCloudApiKey').value = cfg.apiKey || '';
+            document.getElementById('inpCloudProjectId').value = cfg.projectId || 'workshop-51548';
+            document.getElementById('inpCloudAppId').value = cfg.appId || '';
+            const detailEl = document.getElementById('cloudStatusDetail');
+            if (detailEl) {
+                detailEl.innerHTML = window.appState.cloudConnected
+                    ? `<span class="text-emerald-400 font-bold">متصل بنجاح بالسحابة</span> • المشروع: <span class="font-mono text-slate-200">${cfg.projectId}</span>`
+                    : `<span class="text-amber-300 font-bold">جاهز للاتصال:</span> ${window.appState.cloudErrorMsg || 'اضغط حفظ والاتصال أو مزامنة فورية الآن'}`;
+            }
+            toggleModal('cloudSettingsModal', true);
+        };
+
+        window.saveCloudConfigForm = async function (event) {
+            event.preventDefault();
+            if (isRestrictedTowerView()) return;
+            const apiKey = document.getElementById('inpCloudApiKey').value.trim().replace(/^"+|"+$/g, '');
+            const projectId = document.getElementById('inpCloudProjectId').value.trim() || 'workshop-51548';
+            const appId = document.getElementById('inpCloudAppId').value.trim().replace(/^"+|"+$/g, '');
+            localStorage.setItem(CLOUD_CONFIG_STORAGE_KEY, JSON.stringify({ apiKey, projectId, appId }));
+            toggleModal('cloudSettingsModal', false);
+            if (typeof window.initCloudSync === 'function') await window.initCloudSync(true);
+        };
+
+        window.forcePushCloudSync = async function () {
+            await window.saveAllData();
+            showToast(window.appState.cloudConnected ? 'تمت مزامنة البيانات مع السحابة بنجاح' : (window.appState.cloudErrorMsg || 'تعذر المزامنة السحابية'), window.appState.cloudConnected ? 'success' : 'error');
+        };
+
+        window.refreshFromCloudNow = async function () {
+            if (typeof window.initCloudSync === 'function') await window.initCloudSync(false);
+            else renderAllViews();
+        };
+
+        window.applyCloudPayload = function (cloudData, remoteUpdatedAt = '') {
+            if (!cloudData || typeof cloudData !== 'object') return;
+            const baseClone = JSON.parse(JSON.stringify(defaultState));
+            window.appState.data = {
+                ...baseClone,
+                ...cloudData,
+                orders: Array.isArray(cloudData.orders) ? cloudData.orders : baseClone.orders,
+                productionLines: Array.isArray(cloudData.productionLines) ? cloudData.productionLines : baseClone.productionLines,
+                inventory: Array.isArray(cloudData.inventory) ? cloudData.inventory : baseClone.inventory,
+                purchases: Array.isArray(cloudData.purchases) ? cloudData.purchases : baseClone.purchases
+            };
+            window.appState.lastCloudUpdatedAt = remoteUpdatedAt || new Date().toISOString();
+            localStorage.setItem('factory_system_data_v2', JSON.stringify(window.appState.data));
+            renderAllViews();
+        };
+
+        window.saveAllData = async function () {
+            const stamp = new Date().toISOString();
+            window.appState.lastCloudUpdatedAt = stamp;
+            localStorage.setItem('factory_system_data_v2', JSON.stringify(window.appState.data));
+            if (window.firestoreDb && window.firestoreSetDoc && window.firestoreDocRef) {
+                updateSyncBadge('جاري المزامنة...', 'syncing');
+                try {
+                    await window.firestoreSetDoc(window.firestoreDocRef, { payload: JSON.stringify(window.appState.data), updatedAt: stamp });
+                    window.appState.cloudConnected = true;
+                    window.appState.cloudErrorMsg = '';
+                    updateSyncBadge('متصل بالسحابة', 'synced');
+                } catch (e) {
+                    window.appState.cloudConnected = false;
+                    window.appState.cloudErrorMsg = e?.message || 'تعذر الكتابة في Firestore';
+                    updateSyncBadge('خطأ مزامنة السحابة', 'error');
+                }
+            }
+        };
+
+        function loadLocalFallback() {
+            try {
+                const raw = localStorage.getItem('factory_system_data_v2');
+                if (raw) window.appState.data = { ...JSON.parse(JSON.stringify(defaultState)), ...JSON.parse(raw) };
+            } catch (e) {}
+        }
+
+        function initUrlParams() {
+            const params = new URLSearchParams(window.location.search);
+            const portalParam = (params.get('portal') || '').toLowerCase();
+            const managerParam = (params.get('manager') || '').toLowerCase();
+            if (managerParam && MANAGERS_MAP[managerParam] && managerParam !== 'mohammad') {
+                window.appState.managerKey = managerParam;
+                window.appState.managerName = MANAGERS_MAP[managerParam].name;
+                window.appState.isLockedManager = true;
+                window.appState.role = 'tower';
+            } else if (portalParam === 'tower') {
+                window.appState.role = 'tower';
+            } else if (portalParam === 'admin') {
+                window.appState.role = 'admin';
+            }
+        }
+
+        window.switchRole = function (role) {
+            if (window.appState.isLockedManager && role === 'admin') {
+                showToast('هذا الرابط مخصص لبوابة المسؤول فقط', 'error');
+                return;
+            }
+            window.appState.role = role;
+            renderApp();
+        };
+
+        window.switchAdminTab = function (tabName) {
+            window.appState.adminTab = tabName;
+            document.querySelectorAll('[id^="adminTab-"]').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`adminTab-${tabName}`)?.classList.remove('hidden');
+            document.querySelectorAll('.admin-nav-btn').forEach(btn => {
+                btn.className = 'admin-nav-btn px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 text-slate-400 hover:text-white hover:bg-slate-800/70';
+            });
+            const activeBtn = document.getElementById(`adminNav-${tabName}`);
+            if (activeBtn) activeBtn.className = 'admin-nav-btn px-4 py-2.5 rounded-xl text-xs font-black transition-all flex items-center gap-2 bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20';
+            if (tabName === 'production') renderProductionLines();
+            if (tabName === 'inventory') renderInventory();
+            if (tabName === 'purchases') renderPurchases();
+            if (tabName === 'reports') renderTowerReport();
+        };
+
+        window.changeTowerManager = function (key) {
+            if (!MANAGERS_MAP[key] || key === 'mohammad') return;
+            window.appState.managerKey = key;
+            window.appState.managerName = MANAGERS_MAP[key].name;
+            renderTowerHeader();
+            renderTowerOrders();
+        };
+
+        window.setTowerStatusFilter = function (statusVal) {
+            const sel = document.getElementById('towerStatusFilter');
+            if (sel) sel.value = statusVal;
+            renderTowerOrders();
+        };
+
+        function renderTowerHeader() {
+            const mgr = MANAGERS_MAP[window.appState.managerKey] || MANAGERS_MAP.amrit;
+            const badge = document.getElementById('towerManagerBadge');
+            if (badge) badge.innerText = mgr.badge;
+            const sel = document.getElementById('selectTowerManager');
+            if (sel) sel.value = mgr.key;
+            document.getElementById('managerSelectorContainer')?.classList.toggle('hidden', window.appState.isLockedManager);
+        }
+
+        function summarizeOrderItems(items = []) {
+            if (!Array.isArray(items) || items.length === 0) return 'لا توجد بنود';
+            return items.map(it => {
+                const dims = Array.isArray(it.dimensions) ? it.dimensions : [];
+                const totalQty = dims.reduce((acc, d) => acc + (parseInt(d.qty, 10) || 1), 0);
+                return `${it.name || 'بند'} (${dims.length} مقاس / إجمالي ${totalQty})`;
+            }).join(' • ');
+        }
+
+        function renderTowerOrders() {
+            const container = document.getElementById('towerOrdersContainer');
+            if (!container) return;
+            const myOrders = window.appState.data.orders.filter(o => o.managerKey === window.appState.managerKey);
+            document.getElementById('towerStatTotal').innerText = myOrders.length;
+            document.getElementById('towerStatNew').innerText = myOrders.filter(o => o.status === 'NEW').length;
+            document.getElementById('towerStatDriver').innerText = myOrders.filter(o => o.status === 'WITH_DRIVER').length;
+            document.getElementById('towerStatDelivered').innerText = myOrders.filter(o => o.status === 'DELIVERED').length;
+
+            const search = (document.getElementById('towerSearchInput')?.value || '').trim().toLowerCase();
+            const statusFilter = document.getElementById('towerStatusFilter')?.value || 'ALL';
+            const filtered = myOrders.filter(o => {
+                if (statusFilter !== 'ALL' && o.status !== statusFilter) return false;
+                if (!search) return true;
+                return `${o.id} ${o.tower} ${o.unit} ${o.details || ''} ${summarizeOrderItems(o.items)}`.toLowerCase().includes(search);
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="col-span-full bg-slate-900/70 border border-slate-800 rounded-2xl p-8 text-center text-slate-400 text-xs">لا توجد طلبات مطابقة.</div>`;
+                return;
+            }
+
+            container.innerHTML = filtered.map(o => {
+                const st = STATUS_LABELS[o.status] || STATUS_LABELS.NEW;
+                return `
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3">
+                        <div class="flex items-start justify-between gap-2">
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-black text-amber-400">${o.id}</span>
+                                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${st.cls}">${st.text}</span>
+                                </div>
+                                <h4 class="text-sm font-black text-white mt-1">${o.tower} — <span class="text-slate-300 font-bold">${o.unit}</span></h4>
+                            </div>
+                            <span class="text-[11px] text-slate-500">${o.createdAt}</span>
+                        </div>
+                        <p class="text-xs text-slate-300 bg-slate-950/70 border border-slate-800/80 rounded-xl p-2.5">${summarizeOrderItems(o.items)}</p>
+                        <div class="flex items-center justify-between pt-1">
+                            <button type="button" onclick="openOrderDetailsModal('${o.id}')" class="text-xs font-bold text-amber-400 hover:text-amber-300 flex items-center gap-1"><i class="fa-solid fa-eye"></i><span>التفاصيل وإكسل</span></button>
+                            <button type="button" onclick="openEditOrderModal('${o.id}')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold flex items-center gap-1"><i class="fa-solid fa-pen-to-square text-amber-400"></i><span>تعديل</span></button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function refreshTowerFilterOptions() {
+            const towers = Array.from(new Set(window.appState.data.orders.map(o => (o.tower || '').trim()).filter(Boolean)));
+            ['adminTowerFilter', 'reportTowerSelect'].forEach(id => {
+                const sel = document.getElementById(id);
+                if (!sel) return;
+                const prev = sel.value;
+                sel.innerHTML = '<option value="ALL">جميع الأبراج</option>' + towers.map(t => `<option value="${t}">${t}</option>`).join('');
+                if (towers.includes(prev)) sel.value = prev;
+            });
+        }
+
+        window.filterAdminByStatusCard = function (statusKey) {
+            const select = document.getElementById('adminStatusFilter');
+            if (select) select.value = statusKey || 'ALL';
+            window.renderAdminOrdersTable();
+        };
+
+        window.renderAdminOrdersTable = function () {
+            refreshTowerFilterOptions();
+            const orders = window.appState.data.orders;
+            document.getElementById('kpiTotalOrders').innerText = orders.length;
+            document.getElementById('kpiNewOrders').innerText = orders.filter(o => o.status === 'NEW').length;
+            document.getElementById('kpiDriverOrders').innerText = orders.filter(o => o.status === 'WITH_DRIVER').length;
+            document.getElementById('kpiDeliveredOrders').innerText = orders.filter(o => o.status === 'DELIVERED').length;
+
+            const search = (document.getElementById('adminSearchInput')?.value || '').trim().toLowerCase();
+            const towerFilter = document.getElementById('adminTowerFilter')?.value || 'ALL';
+            const statusFilter = document.getElementById('adminStatusFilter')?.value || 'ALL';
+
+            const filtered = orders.filter(o => {
+                if (towerFilter !== 'ALL' && o.tower !== towerFilter) return false;
+                if (statusFilter !== 'ALL' && o.status !== statusFilter) return false;
+                if (!search) return true;
+                return `${o.id} ${o.managerName} ${o.tower} ${o.unit} ${summarizeOrderItems(o.items)}`.toLowerCase().includes(search);
+            });
+
+            const tbody = document.getElementById('adminOrdersTableBody');
+            if (!tbody) return;
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-slate-400">لا توجد طلبات مطابقة.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(o => {
+                const st = STATUS_LABELS[o.status] || STATUS_LABELS.NEW;
+                return `
+                    <tr class="hover:bg-slate-800/40 transition-colors">
+                        <td class="py-3 px-4 font-black text-amber-400 whitespace-nowrap">${o.id}</td>
+                        <td class="py-3 px-4"><div class="font-bold text-white">${o.managerName}</div><div class="text-[11px] text-slate-400">${o.tower}</div></td>
+                        <td class="py-3 px-4 text-slate-200 whitespace-nowrap">${o.unit}</td>
+                        <td class="py-3 px-4 text-slate-300 max-w-xs"><div class="truncate">${summarizeOrderItems(o.items)}</div></td>
+                        <td class="py-3 px-4 whitespace-nowrap">
+                            <select onchange="updateOrderStatus('${o.id}', this.value)" class="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-xs font-bold text-white focus:outline-none">
+                                ${Object.entries(STATUS_LABELS).map(([k, v]) => `<option value="${k}" ${o.status === k ? 'selected' : ''} class="bg-slate-900">${v.text}</option>`).join('')}
+                            </select>
+                            <span class="mr-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold border ${st.cls}">${st.text}</span>
+                        </td>
+                        <td class="py-3 px-4 text-slate-400 whitespace-nowrap text-[11px]">${o.createdAt}</td>
+                        <td class="py-3 px-4 whitespace-nowrap text-center">
+                            <div class="inline-flex items-center gap-1.5">
+                                <button type="button" onclick="openOrderDetailsModal('${o.id}')" title="عرض التفاصيل" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-sky-400"><i class="fa-solid fa-eye"></i></button>
+                                <button type="button" onclick="exportOrderToExcel('${o.id}')" title="تصدير إكسل" class="p-1.5 rounded-lg bg-slate-800 hover:bg-emerald-950 text-emerald-400"><i class="fa-solid fa-file-excel"></i></button>
+                                <button type="button" onclick="openEditOrderModal('${o.id}')" title="تعديل" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-400"><i class="fa-solid fa-pen-to-square"></i></button>
+                                <button type="button" onclick="askDeleteOrder('${o.id}')" title="حذف" class="p-1.5 rounded-lg bg-slate-800 hover:bg-rose-950 text-rose-400"><i class="fa-solid fa-trash-can"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        };
+
+        window.updateOrderStatus = async function (orderId, newStatus) {
+            const ord = window.appState.data.orders.find(o => o.id === orderId);
+            if (!ord) return;
+            ord.status = newStatus;
+            await window.saveAllData();
+            showToast(`تم تحديث حالة الطلب ${orderId}`);
+            renderAllViews();
+        };
+
+        window.askDeleteOrder = function (orderId) {
+            window.appState.pendingDeleteOrderId = orderId;
+            const confirmBtn = document.getElementById('btnConfirmDeleteOrder');
+            if (confirmBtn) {
+                confirmBtn.onclick = async function () {
+                    window.appState.data.orders = window.appState.data.orders.filter(o => o.id !== window.appState.pendingDeleteOrderId);
+                    toggleModal('deleteOrderModal', false);
+                    await window.saveAllData();
+                    showToast('تم حذف الطلب');
+                    renderAllViews();
+                };
+            }
+            toggleModal('deleteOrderModal', true);
+        };
+
+        function escapeCsvCell(val) {
+            return `"${String(val ?? '').replace(/"/g, '""')}"`;
+        }
+
+        window.exportOrderToExcel = function (orderId) {
+            const ord = window.appState.data.orders.find(o => o.id === orderId);
+            if (!ord) return;
+            const stText = STATUS_LABELS[ord.status]?.text || ord.status;
+            const rows = [
+                ['رقم الطلب', ord.id, 'المسؤول', ord.managerName, 'الحالة', stText],
+                ['البرج', ord.tower, 'الشقة / الوحدة', ord.unit, 'التاريخ', ord.createdAt],
+                ['ملاحظات عامة', ord.details || '-', '', '', '', ''],
+                [],
+                ['رقم البند', 'اسم البند', 'العرض', 'الارتفاع', 'العمق', 'العدد', 'ملاحظات المقاس']
+            ];
+            (ord.items || []).forEach((item, idx) => {
+                const dims = Array.isArray(item.dimensions) && item.dimensions.length > 0 ? item.dimensions : [{ width: '-', height: '-', depth: '-', qty: 1, notes: '-' }];
+                dims.forEach(d => rows.push([idx + 1, item.name || 'بند', d.width || '-', d.height || '-', d.depth || '-', d.qty || 1, d.notes || '-']));
+            });
+            const blob = new Blob(['\uFEFF' + rows.map(r => r.map(escapeCsvCell).join(',')).join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${ord.id}_${(ord.tower || 'طلب').replace(/\s+/g, '_')}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast(`تم تصدير الطلب ${ord.id} إلى إكسل`);
+        };
+
+        window.openOrderDetailsModal = function (orderId) {
+            const ord = window.appState.data.orders.find(o => o.id === orderId);
+            if (!ord) return;
+            const st = STATUS_LABELS[ord.status] || STATUS_LABELS.NEW;
+            document.getElementById('detailsModalTitle').innerText = `تفاصيل الطلب ${ord.id}`;
+            document.getElementById('btnExportOrderExcel').onclick = () => window.exportOrderToExcel(ord.id);
+
+            const itemsHtml = (ord.items || []).map((item, idx) => {
+                const dims = Array.isArray(item.dimensions) ? item.dimensions : [];
+                return `
+                    <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-3 space-y-2">
+                        <div class="font-black text-amber-300">بند ${idx + 1}: ${item.name || 'بند'}</div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-right border-collapse text-[11px]">
+                                <thead><tr class="text-slate-400 bg-slate-900/70"><th class="py-1.5 px-3">مقاس</th><th class="py-1.5 px-3">العرض</th><th class="py-1.5 px-3">الارتفاع</th><th class="py-1.5 px-3">العمق</th><th class="py-1.5 px-3">العدد</th><th class="py-1.5 px-3">ملاحظات</th></tr></thead>
+                                <tbody>${dims.map((d, dIdx) => `<tr class="border-t border-slate-800/80"><td class="py-2 px-3">#${dIdx + 1}</td><td class="py-2 px-3 font-bold">${d.width || '-'}</td><td class="py-2 px-3 font-bold">${d.height || '-'}</td><td class="py-2 px-3 font-bold">${d.depth || '-'}</td><td class="py-2 px-3 font-black text-amber-400">${d.qty || 1}</td><td class="py-2 px-3">${d.notes || '-'}</td></tr>`).join('')}</tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('orderDetailsBody').innerHTML = `
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 bg-slate-950/60 p-3.5 rounded-xl border border-slate-800">
+                    <div><span class="text-slate-400 block">المسؤول:</span><strong class="text-white">${ord.managerName}</strong></div>
+                    <div><span class="text-slate-400 block">البرج:</span><strong class="text-white">${ord.tower}</strong></div>
+                    <div><span class="text-slate-400 block">الوحدة:</span><strong class="text-white">${ord.unit}</strong></div>
+                    <div><span class="text-slate-400 block">الحالة:</span><span class="inline-block mt-0.5 px-2 py-0.5 rounded-full text-[11px] font-bold border ${st.cls}">${st.text}</span></div>
+                    <div class="col-span-2"><span class="text-slate-400 block">التاريخ:</span><strong class="text-slate-200">${ord.createdAt}</strong></div>
+                </div>
+                <div class="space-y-2.5">${itemsHtml}</div>
+                ${ord.details ? `<div class="bg-slate-950/60 border border-slate-800 rounded-xl p-3"><span class="text-slate-400 block mb-1">ملاحظات:</span><p class="text-slate-200">${ord.details}</p></div>` : ''}
+            `;
+            toggleModal('orderDetailsModal', true);
+        };
+
+        window.addDimensionRow = function (itemUid, dimData = null) {
+            const dimContainer = document.getElementById(`dims-${itemUid}`);
+            if (!dimContainer) return;
+            const d = dimData || { width: '', height: '', depth: '', qty: 1, notes: '' };
+            const row = document.createElement('div');
+            row.className = 'dim-row grid grid-cols-2 sm:grid-cols-12 gap-2 items-center bg-slate-900/90 border border-slate-800 rounded-xl p-2';
+            row.innerHTML = `
+                <div class="sm:col-span-2"><input type="text" value="${d.width || ''}" placeholder="العرض" class="dim-width w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-white"></div>
+                <div class="sm:col-span-2"><input type="text" value="${d.height || ''}" placeholder="الارتفاع" class="dim-height w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-white"></div>
+                <div class="sm:col-span-2"><input type="text" value="${d.depth || ''}" placeholder="العمق" class="dim-depth w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-white"></div>
+                <div class="sm:col-span-2"><input type="number" min="1" value="${d.qty || 1}" placeholder="العدد" class="dim-qty w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-white"></div>
+                <div class="sm:col-span-3"><input type="text" value="${d.notes || ''}" placeholder="ملاحظة" class="dim-notes w-full bg-slate-950 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-white"></div>
+                <div class="sm:col-span-1 flex justify-center"><button type="button" onclick="removeDimensionRow(this)" class="p-1.5 rounded-lg text-rose-400 hover:bg-rose-950/60"><i class="fa-solid fa-xmark"></i></button></div>
+            `;
+            dimContainer.appendChild(row);
+        };
+
+        window.removeDimensionRow = function (btn) {
+            const row = btn.closest('.dim-row');
+            if (!row || row.parentElement.children.length <= 1) { showToast('مطلوب مقاس واحد على الأقل', 'error'); return; }
+            row.remove();
+        };
+
+        window.addItemRow = function (existingItem = null) {
+            const container = document.getElementById('itemsContainer');
+            if (!container) return;
+            window.appState.itemRowCounter += 1;
+            const itemUid = 'item_' + window.appState.itemRowCounter;
+            const card = document.createElement('div');
+            card.className = 'order-item-card bg-slate-950/80 border border-slate-800 rounded-2xl p-3.5 space-y-3';
+            card.innerHTML = `
+                <div class="flex items-center justify-between gap-2">
+                    <div class="flex-1">
+                        <label class="block text-[11px] font-bold text-slate-400 mb-1">اسم البند</label>
+                        <input type="text" required value="${existingItem?.name || ''}" placeholder="مثال: خزن مطبخ، أبواب..." class="item-name-input w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-bold text-white">
+                    </div>
+                    <button type="button" onclick="removeItemCard(this)" class="mt-4 px-2.5 py-2 rounded-xl bg-rose-950/50 text-rose-400 border border-rose-500/20 text-xs"><i class="fa-solid fa-trash-can"></i></button>
+                </div>
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-bold text-slate-400">المقاسات والكميات:</span>
+                        <button type="button" onclick="addDimensionRow('${itemUid}')" class="px-2.5 py-1 rounded-lg bg-slate-800 text-amber-400 text-[11px] font-bold"><i class="fa-solid fa-plus"></i> إضافة مقاس</button>
+                    </div>
+                    <div id="dims-${itemUid}" class="space-y-2"></div>
+                </div>
+            `;
+            container.appendChild(card);
+            (Array.isArray(existingItem?.dimensions) && existingItem.dimensions.length > 0 ? existingItem.dimensions : [null]).forEach(d => window.addDimensionRow(itemUid, d));
+        };
+
+        window.removeItemCard = function (btn) {
+            const card = btn.closest('.order-item-card');
+            if (!card || document.getElementById('itemsContainer').children.length <= 1) { showToast('مطلوب بند واحد على الأقل', 'error'); return; }
+            card.remove();
+        };
+
+        window.openNewOrderModal = function (overrideKey = null, overrideName = null) {
+            document.getElementById('editingOrderId').value = '';
+            document.getElementById('orderModalTitle').innerHTML = '<i class="fa-solid fa-file-circle-plus text-amber-400"></i> تقديم طلب جديد للمصنع';
+            document.getElementById('btnSubmitOrder').innerText = 'إرسال الطلب إلى المصنع';
+            const resolvedKey = overrideKey || (window.appState.role === 'admin' ? 'mohammad' : window.appState.managerKey);
+            const resolvedName = overrideName || MANAGERS_MAP[resolvedKey]?.name || 'محمد';
+            window.appState.draftOrderManagerKey = resolvedKey;
+            window.appState.draftOrderManagerName = resolvedName;
+            document.getElementById('modalFormManagerName').innerText = resolvedName;
+            document.getElementById('inpTowerName').value = '';
+            document.getElementById('inpApartmentUnit').value = '';
+            document.getElementById('inpDetails').value = '';
+            document.getElementById('itemsContainer').innerHTML = '';
+            window.appState.itemRowCounter = 0;
+            window.addItemRow();
+            toggleModal('newOrderModal', true);
+        };
+
+        window.openEditOrderModal = function (orderId) {
+            const ord = window.appState.data.orders.find(o => o.id === orderId);
+            if (!ord) return;
+            document.getElementById('editingOrderId').value = ord.id;
+            document.getElementById('orderModalTitle').innerHTML = `<i class="fa-solid fa-pen-to-square text-amber-400"></i> تعديل الطلب ${ord.id}`;
+            document.getElementById('btnSubmitOrder').innerText = 'حفظ التعديلات';
+            window.appState.draftOrderManagerKey = ord.managerKey || 'mohammad';
+            window.appState.draftOrderManagerName = ord.managerName || 'محمد';
+            document.getElementById('modalFormManagerName').innerText = window.appState.draftOrderManagerName;
+            document.getElementById('inpTowerName').value = ord.tower || '';
+            document.getElementById('inpApartmentUnit').value = ord.unit || '';
+            document.getElementById('inpDetails').value = ord.details || '';
+            document.getElementById('itemsContainer').innerHTML = '';
+            window.appState.itemRowCounter = 0;
+            (Array.isArray(ord.items) && ord.items.length > 0 ? ord.items : [null]).forEach(it => window.addItemRow(it));
+            toggleModal('newOrderModal', true);
+        };
+
+        window.submitOrderForm = async function (event) {
+            event.preventDefault();
+            const towerVal = document.getElementById('inpTowerName').value.trim();
+            const unitVal = document.getElementById('inpApartmentUnit').value.trim();
+            const detailsVal = document.getElementById('inpDetails').value.trim();
+            const editingId = document.getElementById('editingOrderId').value.trim();
+            const parsedItems = Array.from(document.querySelectorAll('.order-item-card')).map(card => {
+                const name = card.querySelector('.item-name-input')?.value.trim() || '';
+                if (!name) return null;
+                const dimensions = Array.from(card.querySelectorAll('.dim-row')).map(r => ({
+                    width: r.querySelector('.dim-width')?.value.trim() || '',
+                    height: r.querySelector('.dim-height')?.value.trim() || '',
+                    depth: r.querySelector('.dim-depth')?.value.trim() || '',
+                    qty: Math.max(1, parseInt(r.querySelector('.dim-qty')?.value, 10) || 1),
+                    notes: r.querySelector('.dim-notes')?.value.trim() || ''
+                }));
+                return { name, dimensions };
+            }).filter(Boolean);
+
+            if (!towerVal || !unitVal || parsedItems.length === 0) return;
+
+            if (editingId) {
+                const existing = window.appState.data.orders.find(o => o.id === editingId);
+                if (existing) Object.assign(existing, { tower: towerVal, unit: unitVal, details: detailsVal, items: parsedItems });
+                showToast(`تم تحديث الطلب ${editingId}`);
+            } else {
+                const activeKey = window.appState.role === 'admin' ? (window.appState.draftOrderManagerKey || 'mohammad') : window.appState.managerKey;
+                const activeName = window.appState.role === 'admin' ? (window.appState.draftOrderManagerName || 'محمد') : window.appState.managerName;
+                const newOrder = {
+                    id: 'ORD-2026-' + Date.now().toString(36).toUpperCase().slice(-5),
+                    managerKey: activeKey,
+                    managerName: activeName,
+                    tower: towerVal,
+                    unit: unitVal,
+                    details: detailsVal,
+                    items: parsedItems,
+                    status: 'NEW',
+                    createdAt: nowString()
+                };
+                window.appState.data.orders.unshift(newOrder);
+                showToast(`تم إرسال الطلب ${newOrder.id} باسم ${activeName}`);
+            }
+
+            toggleModal('newOrderModal', false);
+            await window.saveAllData();
+            renderAllViews();
+        };
+
+        window.openShareLinksModal = function () {
+            if (isRestrictedTowerView()) return;
+            const container = document.getElementById('shareLinksContainer');
+            if (!container) return;
+            const href = window.location.href || '';
+            const baseUrl = (href.startsWith('http://') || href.startsWith('https://')) ? (href.split('#')[0].split('?')[0] || PUBLISHED_HOST_URL) : PUBLISHED_HOST_URL;
+            container.innerHTML = Object.values(MANAGERS_MAP).filter(m => m.key !== 'mohammad').map(m => {
+                const link = `${baseUrl}${baseUrl.includes('?') ? '&' : '?'}portal=tower&manager=${m.key}`;
+                return `
+                    <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 space-y-2">
+                        <div class="flex items-center justify-between"><span class="text-xs font-black text-white">${m.name}</span><span class="text-[11px] text-amber-400 font-bold">${m.badge}</span></div>
+                        <div class="flex items-center gap-2">
+                            <input type="text" readonly value="${link}" class="flex-1 bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-[11px] text-slate-300 select-all">
+                            <button type="button" onclick="copyShareLink('${link}', '${m.name}')" class="px-3 py-1.5 rounded-lg bg-amber-500 text-slate-950 text-xs font-black">نسخ</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            toggleModal('shareLinksModal', true);
+        };
+
+        window.copyShareLink = function (link, mgrName) {
+            navigator.clipboard?.writeText(link).then(() => showToast(`تم نسخ رابط ${mgrName}`)).catch(() => showToast(link));
+        };
+
+        function renderProductionLines() {
+            const grid = document.getElementById('productionLinesGrid');
+            if (!grid) return;
+            grid.innerHTML = window.appState.data.productionLines.map(pl => `
+                <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-4 space-y-3">
+                    <div class="flex items-center justify-between"><h4 class="text-sm font-black text-white">${pl.name}</h4><span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30">${pl.status}</span></div>
+                    <div class="text-xs text-slate-400">المشرف: <strong class="text-slate-200">${pl.supervisor}</strong></div>
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-[11px]"><span class="text-slate-400">نسبة الإنجاز</span><span class="font-bold text-white">${pl.progress}%</span></div>
+                        <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden"><div class="h-full bg-amber-500" style="width:${pl.progress}%"></div></div>
+                    </div>
+                    <div class="flex items-center justify-between pt-1">
+                        <button type="button" onclick="adjustLineProgress('${pl.id}', -10)" class="px-2.5 py-1 rounded-lg bg-slate-800 text-xs font-bold text-slate-300">-10%</button>
+                        <button type="button" onclick="adjustLineProgress('${pl.id}', 10)" class="px-2.5 py-1 rounded-lg bg-amber-500/20 text-xs font-black text-amber-300">+10%</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        window.adjustLineProgress = async function (lineId, delta) {
+            const line = window.appState.data.productionLines.find(l => l.id === lineId);
+            if (!line) return;
+            line.progress = Math.max(0, Math.min(100, (line.progress || 0) + delta));
+            await window.saveAllData();
+            renderProductionLines();
+        };
+
+        window.openAddProductionLineModal = () => toggleModal('addProductionLineModal', true);
+        window.submitProductionLine = async function (e) {
+            e.preventDefault();
+            window.appState.data.productionLines.push({ id: 'PL-' + Date.now().toString().slice(-4), name: document.getElementById('inpLineName').value.trim(), supervisor: document.getElementById('inpLineSupervisor').value.trim(), progress: 0, activeOrder: 'بانتظار أمر تشغيل', status: 'نشط' });
+            toggleModal('addProductionLineModal', false);
+            await window.saveAllData();
+            renderProductionLines();
+        };
+
+        function renderInventory() {
+            const tbody = document.getElementById('inventoryTableBody');
+            if (!tbody) return;
+            tbody.innerHTML = window.appState.data.inventory.map(item => {
+                const isLow = item.qty <= item.minQty;
+                return `
+                    <tr class="hover:bg-slate-800/40">
+                        <td class="py-3 px-4 font-bold text-white">${item.name}</td>
+                        <td class="py-3 px-4 text-slate-300">${item.category}</td>
+                        <td class="py-3 px-4 font-black ${isLow ? 'text-rose-400' : 'text-emerald-400'}">${item.qty} ${item.unit || ''}</td>
+                        <td class="py-3 px-4 text-slate-400">${item.minQty}</td>
+                        <td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-[11px] font-bold border ${isLow ? 'bg-rose-500/15 text-rose-400 border-rose-500/30' : 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'}">${isLow ? 'منخفض' : 'متوفر'}</span></td>
+                        <td class="py-3 px-4 text-center"><button type="button" onclick="adjustInventoryQty('${item.id}', -1)" class="px-2 py-1 rounded bg-slate-800 text-white font-bold">-</button> <button type="button" onclick="adjustInventoryQty('${item.id}', 5)" class="px-2 py-1 rounded bg-amber-500/20 text-amber-300 font-bold">+5</button></td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        window.adjustInventoryQty = async function (invId, delta) {
+            const item = window.appState.data.inventory.find(i => i.id === invId);
+            if (!item) return;
+            item.qty = Math.max(0, (item.qty || 0) + delta);
+            await window.saveAllData();
+            renderInventory();
+        };
+
+        window.openAddInventoryModal = () => toggleModal('addInventoryModal', true);
+        window.submitInventoryItem = async function (e) {
+            e.preventDefault();
+            window.appState.data.inventory.push({ id: 'INV-' + Date.now().toString().slice(-4), name: document.getElementById('inpInvName').value.trim(), category: document.getElementById('inpInvCategory').value.trim(), qty: Math.max(0, parseInt(document.getElementById('inpInvQty').value, 10) || 0), minQty: Math.max(0, parseInt(document.getElementById('inpInvMin').value, 10) || 0), unit: 'وحدة' });
+            toggleModal('addInventoryModal', false);
+            await window.saveAllData();
+            renderInventory();
+        };
+
+        function renderPurchases() {
+            const tbody = document.getElementById('purchasesTableBody');
+            if (!tbody) return;
+            tbody.innerHTML = window.appState.data.purchases.map(p => `
+                <tr class="hover:bg-slate-800/40">
+                    <td class="py-3 px-4 font-bold text-amber-400">${p.id}</td>
+                    <td class="py-3 px-4 text-white font-bold">${p.supplier}</td>
+                    <td class="py-3 px-4 text-slate-200">${p.material}</td>
+                    <td class="py-3 px-4 text-slate-300">${p.qty}</td>
+                    <td class="py-3 px-4 text-emerald-400 font-bold">${Number(p.cost || 0).toLocaleString()}</td>
+                    <td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-[11px] font-bold border ${p.status === 'مستلم' ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' : 'bg-amber-500/15 text-amber-300 border-amber-500/30'}">${p.status}</span></td>
+                    <td class="py-3 px-4 text-center">${p.status !== 'مستلم' ? `<button type="button" onclick="markPurchaseReceived('${p.id}')" class="px-2.5 py-1 rounded-lg bg-emerald-600 text-white text-[11px] font-bold">استلام</button>` : '<span class="text-[11px] text-slate-500">مكتمل</span>'}</td>
+                </tr>
+            `).join('');
+        }
+
+        window.markPurchaseReceived = async function (purId) {
+            const p = window.appState.data.purchases.find(x => x.id === purId);
+            if (!p || p.status === 'مستلم') return;
+            p.status = 'مستلم';
+            const invItem = window.appState.data.inventory.find(i => i.name.toLowerCase() === (p.material || '').toLowerCase());
+            if (invItem) invItem.qty = (invItem.qty || 0) + (parseInt(p.qty, 10) || 0);
+            await window.saveAllData();
+            renderPurchases();
+            renderInventory();
+        };
+
+        window.openAddPurchaseModal = () => toggleModal('addPurchaseModal', true);
+        window.submitPurchase = async function (e) {
+            e.preventDefault();
+            window.appState.data.purchases.unshift({ id: 'PUR-' + Date.now().toString().slice(-4), supplier: document.getElementById('inpPurSupplier').value.trim(), material: document.getElementById('inpPurMaterial').value.trim(), qty: Math.max(1, parseInt(document.getElementById('inpPurQty').value, 10) || 1), cost: Math.max(0, parseFloat(document.getElementById('inpPurCost').value) || 0), status: 'قيد التوريد', date: nowString().split(' ')[0] });
+            toggleModal('addPurchaseModal', false);
+            await window.saveAllData();
+            renderPurchases();
+        };
+
+        function renderTowerReport() {
+            refreshTowerFilterOptions();
+            const content = document.getElementById('towerReportContent');
+            if (!content) return;
+            const selectedTower = document.getElementById('reportTowerSelect')?.value || 'ALL';
+            const orders = window.appState.data.orders.filter(o => selectedTower === 'ALL' || o.tower === selectedTower);
+            content.innerHTML = orders.length ? orders.map(o => {
+                const st = STATUS_LABELS[o.status] || STATUS_LABELS.NEW;
+                return `<div class="bg-slate-950/80 border border-slate-800 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3"><div class="space-y-1"><div class="flex items-center gap-2 text-xs"><span class="font-black text-amber-400">${o.id}</span><span class="font-bold text-white">${o.tower} — ${o.unit}</span><span class="text-slate-400">(${o.managerName})</span></div><p class="text-xs text-slate-300">${summarizeOrderItems(o.items)}</p></div><span class="px-2.5 py-1 rounded-full text-xs font-bold border ${st.cls}">${st.text}</span></div>`;
+            }).join('') : '<div class="bg-slate-950 border border-slate-800 rounded-xl p-6 text-center text-xs text-slate-400">لا توجد بيانات.</div>';
+        }
+
+        function renderAllViews() {
+            renderTowerHeader();
+            renderTowerOrders();
+            window.renderAdminOrdersTable();
+            if (window.appState.adminTab === 'production') renderProductionLines();
+            if (window.appState.adminTab === 'inventory') renderInventory();
+            if (window.appState.adminTab === 'purchases') renderPurchases();
+            if (window.appState.adminTab === 'reports') renderTowerReport();
+        }
+
+        function renderApp() {
+            const isTower = window.appState.role === 'tower';
+            const hideAdminTools = isRestrictedTowerView();
+            document.getElementById('towerPortalSection')?.classList.toggle('hidden', !isTower);
+            document.getElementById('adminDashboardSection')?.classList.toggle('hidden', isTower);
+            document.getElementById('btnAdminNewOrder')?.classList.toggle('hidden', isTower || window.appState.isLockedManager);
+            document.getElementById('roleSwitcherGroup')?.classList.toggle('hidden', window.appState.isLockedManager);
+            document.getElementById('btnShareLinks')?.classList.toggle('hidden', hideAdminTools);
+            document.getElementById('btnCloudSettings')?.classList.toggle('hidden', hideAdminTools);
+            if (hideAdminTools) {
+                toggleModal('shareLinksModal', false);
+                toggleModal('cloudSettingsModal', false);
+            }
+            window.switchAdminTab(window.appState.adminTab || 'dashboard');
+            renderAllViews();
+        }
+
+        loadLocalFallback();
+        initUrlParams();
+        renderApp();
+        updateSyncBadge('ربط السحابة', 'error');
+    </script>
+
+    <script type="module">
+        import { initializeApp, getApps, deleteApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        let activeUnsubscribe = null;
+
+        window.initCloudSync = async function (showFeedback = false) {
+            const cfg = typeof getActiveFirebaseConfig === 'function' ? getActiveFirebaseConfig() : null;
+            if (!cfg || !cfg.apiKey || !cfg.projectId) return;
+            try {
+                if (typeof activeUnsubscribe === 'function') { activeUnsubscribe(); activeUnsubscribe = null; }
+                for (const ex of getApps()) await deleteApp(ex);
+                const app = initializeApp(cfg);
+                const db = getFirestore(app);
+                const docRef = doc(db, "factory_system", "shared_state_v2");
+                window.firestoreDb = db;
+                window.firestoreSetDoc = setDoc;
+                window.firestoreDocRef = docRef;
+
+                activeUnsubscribe = onSnapshot(docRef, (snap) => {
+                    window.appState.cloudConnected = true;
+                    window.appState.cloudErrorMsg = '';
+                    if (snap.exists() && snap.data()?.payload) {
+                        try {
+                            window.applyCloudPayload(JSON.parse(snap.data().payload), snap.data().updatedAt || '');
+                        } catch (e) {}
+                    } else {
+                        setDoc(docRef, { payload: JSON.stringify(window.appState.data), updatedAt: new Date().toISOString() }).catch(() => {});
+                    }
+                    updateSyncBadge('متصل بالسحابة', 'synced');
+                }, (err) => {
+                    window.appState.cloudConnected = false;
+                    window.appState.cloudErrorMsg = err?.message || 'تعذر الاتصال بقاعدة البيانات';
+                    updateSyncBadge('خطأ مزامنة السحابة', 'error');
+                    if (showFeedback && !isRestrictedTowerView()) showToast(window.appState.cloudErrorMsg, 'error');
+                });
+
+                if (showFeedback && !isRestrictedTowerView()) showToast('تم تفعيل الاتصال السحابي');
+            } catch (err) {
+                window.appState.cloudConnected = false;
+                window.appState.cloudErrorMsg = err?.message || 'خطأ في تهيئة Firebase';
+                updateSyncBadge('خطأ مزامنة السحابة', 'error');
+                if (showFeedback && !isRestrictedTowerView()) showToast(window.appState.cloudErrorMsg, 'error');
+            }
+        };
+
+        window.initCloudSync(false);
+    </script>
+</body>
+</html>
